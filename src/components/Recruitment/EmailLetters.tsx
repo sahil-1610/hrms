@@ -3,8 +3,15 @@ import React, { useState } from "react";
 import { LetterText } from "lucide-react";
 import { toast } from "react-toastify";
 
+// Define Type for Candidates
+type Candidate = {
+  candidateid: number;
+  fullName: string;
+  email: string;
+};
+
 // Sample Candidate Data
-const candidateData = [
+const candidateData: Candidate[] = [
   { candidateid: 1, fullName: "Aarav Patel", email: "aarav.patel@example.com" },
   {
     candidateid: 2,
@@ -15,8 +22,10 @@ const candidateData = [
 ];
 
 function EmailLetters() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
+    null,
+  );
 
   // Filter candidates based on search input
   const filteredCandidates = candidateData.filter((candidate) =>
@@ -24,7 +33,7 @@ function EmailLetters() {
   );
 
   // Simulate sending an email
-  const sendEmail = (emailType) => {
+  const sendEmail = (emailType: string) => {
     if (!selectedCandidate) {
       toast.error("Please select a candidate first.");
       return;

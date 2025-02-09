@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import Breadcrumb from "../Breadcrumbs/Breadcrumb";
 import { useParams } from "next/navigation";
 
-
 const candidateData = [
   {
     candidateid: 1,
@@ -47,7 +46,7 @@ function CandidateOperation() {
     return <div className="text-red-500">Candidate not found!</div>;
   }
 
-  const handleDecision = async (decision: {decision:string}) => {
+  const handleDecision = async (decision: { decision: string }) => {
     setLoading(true);
     setMessage("");
 
@@ -92,14 +91,14 @@ function CandidateOperation() {
         <div className="mt-4 flex gap-4">
           <button
             className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:bg-gray-400"
-            onClick={() => handleDecision("accepted")}
+            onClick={() => handleDecision({ decision: "accepted" })}
             disabled={loading}
           >
             Accept
           </button>
           <button
             className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:bg-gray-400"
-            onClick={() => handleDecision("rejected")}
+            onClick={() => handleDecision({ decision: "rejected" })}
             disabled={loading}
           >
             Reject

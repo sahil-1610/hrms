@@ -47,7 +47,7 @@ export default function RecruitmentList() {
                 No of positions :{vacancy.positions}
               </p>
               <Link
-                href={`/recruitment/apply/${vacancy.id}`}
+                href={`/recruitment/jobapply/${vacancy.id}`}
                 className="inline-flex items-center justify-center rounded-full bg-meta-3 px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
               >
                 Apply Link

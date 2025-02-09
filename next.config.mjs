@@ -1,10 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": false
-  }
-
-};
+const nextConfig = {};
 
 export default nextConfig;

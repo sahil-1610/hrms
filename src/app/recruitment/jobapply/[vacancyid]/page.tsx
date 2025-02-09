@@ -1,9 +1,15 @@
 "use client";
-import ApplyForVacancy from "@/components/Recruitment/ApplicatonForm";
+import ApplyForVacancy from "@/components/Recruitment/ApplicatonForm"
 import React from "react";
 
-function ApplicationForm({ params }: { params: { vacancyid: string } }) {
-  return <ApplyForVacancy />;
+interface PageProps {
+  params: {
+    vacancyid: string;
+  };
+}
+
+function ApplicationForm({ params }: PageProps) {
+  return <ApplyForVacancy vacancyid={params.vacancyid} />;
 }
 
 export default ApplicationForm;
