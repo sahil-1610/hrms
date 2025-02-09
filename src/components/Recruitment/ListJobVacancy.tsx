@@ -1,14 +1,24 @@
 "use client";
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-
 import React from "react";
 import Link from "next/link";
+import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
-const vacancies = [
+interface Vacancy {
+  id: number;
+  vacancyName: string;
+  jobTitle: string;
+  description: string;
+  hiringManager: string;
+  positions: number;
+  isActive: boolean;
+  url: string;
+}
+
+const vacancies: Vacancy[] = [
   {
     id: 1,
-    name: "Software Engineer",
-    title: "Frontend Developer",
+    vacancyName: "Software Engineer",
+    jobTitle: "Frontend Developer",
     description: "Develop and maintain web applications using React.js.",
     hiringManager: "John Doe",
     positions: 3,
@@ -17,8 +27,8 @@ const vacancies = [
   },
   {
     id: 2,
-    name: "Backend Engineer",
-    title: "Node.js Developer",
+    vacancyName: "Backend Engineer",
+    jobTitle: "Node.js Developer",
     description: "Build and manage backend services using Node.js and Express.",
     hiringManager: "Jane Smith",
     positions: 2,
@@ -27,7 +37,7 @@ const vacancies = [
   },
 ];
 
-const VacancyList = () => {
+const VacancyList: React.FC = () => {
   return (
     <>
       <Breadcrumb pageName="Vacancy List" />
@@ -43,7 +53,7 @@ const VacancyList = () => {
             className="mb-4 rounded-lg border border-stroke bg-transparent p-4 dark:border-form-strokedark dark:bg-form-input"
           >
             <h3 className="text-lg font-medium text-black dark:text-white">
-              {vacancy.name} ({vacancy.title})
+              {vacancy.vacancyName} ({vacancy.jobTitle})
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               {vacancy.description}
@@ -58,18 +68,24 @@ const VacancyList = () => {
               <strong>Active:</strong> {vacancy.isActive ? "Yes" : "No"}
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              <strong>Apply Link:</strong> {vacancy.url}
+              <strong>Apply Link:</strong>{" "}
+              <Link
+                href={vacancy.url}
+                className="text-blue-600 hover:underline dark:text-blue-400"
+              >
+                {vacancy.url}
+              </Link>
             </p>
-            <div className="mx-3 my-2">
+            <div className="mx-3 my-2 flex gap-3">
               <Link
                 href="#"
-                className="inline-flex items-center justify-center rounded-full bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-8"
+                className="inline-flex items-center justify-center rounded-full bg-primary px-8 py-2 text-center font-medium text-white hover:bg-opacity-90"
               >
                 Update
               </Link>
               <Link
                 href="#"
-                className="mx-3 inline-flex items-center justify-center rounded-full bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-8"
+                className="inline-flex items-center justify-center rounded-full bg-primary px-8 py-2 text-center font-medium text-white hover:bg-opacity-90"
               >
                 Delete
               </Link>

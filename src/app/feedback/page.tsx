@@ -1,14 +1,13 @@
-import Buttons from '@/app/ui/buttons/page';
-import FeedbackEmail from '@/components/Feedback/FeedbackEmail';
-import DefaultLayout from '@/components/Layouts/DefaultLayout'
-import React from 'react'
+import FeedbackEmail from "@/components/Feedback/FeedbackEmail";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import React from "react";
 
 function CreateForm() {
   return (
     <DefaultLayout>
-      <FeedbackEmail/>
+      <FeedbackEmail />
     </DefaultLayout>
   );
 }
 
-export default CreateForm
+export default CreateForm;

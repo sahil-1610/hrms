@@ -1,37 +1,72 @@
 "use client";
-import React from "react";
-import Breadcrumb from "../Breadcrumbs/Breadcrumb";
-import { useRouter } from "next/navigation";
 
-const candidates = [
+import React from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+
+interface Candidate {
+  candidateid: number;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  education: string;
+  experience: string;
+  linkedIn: string;
+  notes: string;
+  category: string;
+}
+
+const candidates: Candidate[] = [
   {
     candidateid: 1,
     fullName: "Aarav Patel",
-    category: "Software Engineer",
+    email: "aarav@example.com",
+    phone: "+91 9876543210",
+    address: "Mumbai, India",
+    education: "B.Tech in Computer Science",
     experience: "3 years",
+    linkedIn: "https://linkedin.com/in/aaravpatel",
+    notes: "Passionate about technology and innovation.",
+    category: "Software Engineer",
   },
   {
     candidateid: 2,
     fullName: "Priya Sharma",
-    category: "Data Scientist",
+    email: "priya@example.com",
+    phone: "+91 9123456789",
+    address: "Bangalore, India",
+    education: "B.Sc in Data Science",
     experience: "2 years",
+    linkedIn: "https://linkedin.com/in/priyasharma",
+    notes: "Skilled in data analysis and visualization.",
+    category: "Data Scientist",
   },
   {
     candidateid: 3,
     fullName: "Rohan Mehta",
-    category: "DevOps Engineer",
+    email: "rohan@example.com",
+    phone: "+91 9988776655",
+    address: "Hyderabad, India",
+    education: "Diploma in DevOps",
     experience: "4 years",
+    linkedIn: "https://linkedin.com/in/rohanmehta",
+    notes: "Expert in cloud infrastructure and automation.",
+    category: "DevOps Engineer",
   },
 ];
 
-function CandidateResponse() {
+const CandidateResponse: React.FC = () => {
   const router = useRouter();
 
   return (
     <>
       <Breadcrumb pageName="Candidate Response" />
       <div className="relative overflow-x-auto p-6 shadow-md sm:rounded-lg">
-        <h1 className="mb-4 text-2xl font-bold">Candidate List</h1>
+        <h1 className="mb-4 text-2xl font-bold text-black dark:text-white">
+          Candidate List
+        </h1>
         <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400 rtl:text-right">
           <thead className="text-xs uppercase text-gray-700 dark:text-gray-400">
             <tr>
@@ -77,6 +112,6 @@ function CandidateResponse() {
       </div>
     </>
   );
-}
+};
 
 export default CandidateResponse;

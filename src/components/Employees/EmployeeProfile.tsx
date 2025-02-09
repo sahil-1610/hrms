@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, ChangeEvent } from "react";
 import Image from "next/image";
 
 interface Activity {
@@ -19,6 +19,10 @@ interface Employee {
   email: string;
   phone: string;
   address: string;
+  education: string;
+  linkedIn: string;
+  notes: string;
+  category: string;
   activities: Activity[];
   performanceScore: number;
   profileImage: string;
@@ -33,18 +37,22 @@ const employees: Employee[] = [
     email: "aarav.patel@example.com",
     phone: "+91 9876543210",
     address: "Mumbai, India",
+    education: "B.Tech in Computer Science",
+    linkedIn: "https://linkedin.com/in/aaravpatel",
+    notes: "Full-stack developer with 3 years of experience.",
+    category: "Software Engineer",
     activities: [],
     performanceScore: 4.2,
-    profileImage: "/images/user/user-06.png", // Using constant image from the template
+    profileImage: "/images/user/user-06.png",
   },
-  // ... other employees
+  // Add more employees if needed...
 ];
 
 const EmployeeProfile: React.FC = () => {
   const params = useParams();
   const employeeid = params.employeeid as string;
-  const [isEditing, setIsEditing] = useState(false);
-  const [employee, setEmployee] = useState(
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [employee, setEmployee] = useState<Employee>(
     employees.find((emp) => emp.employeeid === Number(employeeid)) ||
       employees[0],
   );
@@ -98,6 +106,14 @@ const EmployeeProfile: React.FC = () => {
     return Number((sum / activities.length).toFixed(1));
   };
 
+  // Exclude keys that we don't want to display in the details section.
+  const excludedKeys = [
+    "employeeid",
+    "activities",
+    "performanceScore",
+    "profileImage",
+  ];
+
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
       {/* Profile Section */}
@@ -134,24 +150,16 @@ const EmployeeProfile: React.FC = () => {
         {/* Employee Details */}
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {Object.entries(employee)
-            .filter(
-              ([key]) =>
-                ![
-                  "employeeid",
-                  "activities",
-                  "performanceScore",
-                  "profileImage",
-                ].includes(key),
-            )
+            .filter(([key]) => !excludedKeys.includes(key))
             .map(([key, value]) => (
               <div key={key} className="space-y-1">
                 <label className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {key.charAt(0).toUpperCase() + key.slice(1)}:
+                  {key.charAt(0).toUpperCase() + key.slice(1)}
                 </label>
                 {isEditing ? (
                   <input
                     type="text"
-                    value={value}
+                    value={value as string}
                     onChange={(e) =>
                       handleEmployeeUpdate(
                         key as keyof Employee,
@@ -237,7 +245,7 @@ const EmployeeProfile: React.FC = () => {
                 className="w-full rounded border p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 rows={3}
                 placeholder="Describe the activity..."
-              />
+              ></textarea>
             </div>
             <button
               onClick={handleAddActivity}

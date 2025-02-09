@@ -1,18 +1,17 @@
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
-import EmployeeList from "@/components/Dashboard/EmployeeList";
+import DashboardComponent from "@/components/Dashboard/DashboardComponent";
 
 export const metadata: Metadata = {
-  title:
-    "Next.js E-commerce Dashboard | TailAdmin - Next.js Dashboard Template",
-  description: "This is Next.js Home for TailAdmin Dashboard Template",
+  title: "HRMS",
+  description: "This is HR management Dashboard",
 };
 
 export default function Home() {
   return (
     <>
       <DefaultLayout>
-        <EmployeeList />
+        <DashboardComponent />
       </DefaultLayout>
     </>
   );
