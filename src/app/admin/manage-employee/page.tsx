@@ -115,8 +115,6 @@ const ManageEmployee: React.FC = () => {
             <thead className="bg-gray-100 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-200">
               <tr>
                 <th className="border px-4 py-3">Employee Name</th>
-                <th className="border px-4 py-3">Email</th>
-                <th className="border px-4 py-3">Phone</th>
                 <th className="border px-4 py-3">Department</th>
                 <th className="border px-4 py-3">Experience</th>
                 <th className="border px-4 py-3">Actions</th>
@@ -136,12 +134,10 @@ const ManageEmployee: React.FC = () => {
                       {employee.fullName}
                     </Link>
                   </td>
-                  <td className="border px-4 py-3">{employee.email}</td>
-                  <td className="border px-4 py-3">{employee.phone}</td>
                   <td className="border px-4 py-3">{employee.department}</td>
                   <td className="border px-4 py-3">{employee.experience}</td>
                   <td className="border px-4 py-3">
-                    <div className="flex gap-2">
+                    <div className="flex gap-4">
                       <Link
                         href={`/employees/${employee.employeeid}`}
                         className="text-blue-600 hover:underline dark:text-blue-400"
