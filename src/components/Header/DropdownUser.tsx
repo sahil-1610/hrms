@@ -101,7 +101,7 @@ const DropdownUser: React.FC = () => {
           <ul className="flex flex-col border-b border-gray-200 px-6 py-5 dark:border-gray-700">
             <li>
               <Link
-                href="/adminprofile"
+                href="/hrprofile"
                 className="flex items-center gap-3 text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-300"
               >
                 <User size={20} />
@@ -110,7 +110,7 @@ const DropdownUser: React.FC = () => {
             </li>
             <li className="mt-3">
               <Link
-                href="/admin/maintainence"
+                href="/admin/manage-employee"
                 className="flex items-center gap-3 text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-300"
               >
                 <Settings size={20} />

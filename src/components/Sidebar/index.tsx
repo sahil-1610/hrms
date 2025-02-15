@@ -71,7 +71,7 @@ const menuGroups = [
       {
         icon: <UserCog size={18} className="fill-current" />,
         label: "HR profile",
-        route: "/adminprofile",
+        route: "/hrprofile",
       },
     ],
   },
