@@ -1,13 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
 import { User, Settings, Briefcase, LogOut } from "lucide-react";
 
+interface HRProfileData {
+  name: string;
+  email: string;
+  profileImage: string;
+  // Add any additional fields as needed.
+}
+
 const DropdownUser: React.FC = () => {
+  const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const [profile, setProfile] = useState<HRProfileData | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+
+  // On mount, retrieve the token from localStorage.
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
+    } else {
+      console.warn("No token found in localStorage.");
+    }
+  }, []);
+
+  // When the token is available, fetch the HR profile.
+  useEffect(() => {
+    if (!token) return;
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`/api/hrprofile`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setProfile(data.data);
+        } else {
+          console.error("Failed to fetch profile:", data.message);
+        }
+      } catch (error) {
+        console.error("Fetch profile error:", error);
+      }
+    };
+    fetchProfile();
+  }, [token]);
+
+  // Logout function: remove token and redirect to sign in page.
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/auth/signin");
+  };
 
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
@@ -15,25 +67,29 @@ const DropdownUser: React.FC = () => {
         onClick={() => setDropdownOpen(!dropdownOpen)}
         className="flex items-center gap-4 focus:outline-none"
       >
-        <span className="hidden text-right lg:block">
-          <span className="block text-sm font-medium text-black dark:text-white">
-            Thomas Anree
-          </span>
-          <span className="block text-xs text-gray-500 dark:text-gray-400">
-            HR
-          </span>
-        </span>
-
-        <span className="h-12 w-12 rounded-full">
-          <Image
-            width={112}
-            height={112}
-            src={"/images/user/user-01.png"}
-            className="h-full w-full rounded-full"
-            alt="User"
-          />
-        </span>
-
+        {profile ? (
+          <>
+            <span className="hidden text-right lg:block">
+              <span className="block text-sm font-medium text-black dark:text-white">
+                {profile.name}
+              </span>
+              <span className="block text-xs text-gray-500 dark:text-gray-400">
+                {profile.email}
+              </span>
+            </span>
+            <span className="h-12 w-12 rounded-full">
+              <Image
+                src={profile.profileImage || "/images/user/user-06.png"}
+                alt="User"
+                width={112}
+                height={112}
+                className="h-full w-full rounded-full object-cover"
+              />
+            </span>
+          </>
+        ) : (
+          <span className="h-12 w-12 rounded-full bg-gray-200" />
+        )}
         <span className="hidden text-gray-500 dark:text-gray-400 sm:block">
           ▼
         </span>
@@ -46,7 +102,7 @@ const DropdownUser: React.FC = () => {
             <li>
               <Link
                 href="/adminprofile"
-                className="flex items-center gap-3 text-sm font-medium text-gray-700 duration-300 ease-in-out hover:text-primary dark:text-gray-300"
+                className="flex items-center gap-3 text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-300"
               >
                 <User size={20} />
                 My Profile
@@ -55,7 +111,7 @@ const DropdownUser: React.FC = () => {
             <li className="mt-3">
               <Link
                 href="/admin/maintainence"
-                className="flex items-center gap-3 text-sm font-medium text-gray-700 duration-300 ease-in-out hover:text-primary dark:text-gray-300"
+                className="flex items-center gap-3 text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-300"
               >
                 <Settings size={20} />
                 Settings
@@ -64,15 +120,17 @@ const DropdownUser: React.FC = () => {
             <li className="mt-3">
               <Link
                 href="/recruitment/jobapply"
-                className="flex items-center gap-3 text-sm font-medium text-gray-700 duration-300 ease-in-out hover:text-primary dark:text-gray-300"
+                className="flex items-center gap-3 text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-300"
               >
                 <Briefcase size={20} />
                 Recruitment Page
               </Link>
             </li>
           </ul>
-
-          <button className="flex w-full items-center gap-3 px-6 py-4 text-sm font-medium text-gray-700 duration-300 ease-in-out hover:text-primary dark:text-gray-300">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 px-6 py-4 text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-300"
+          >
             <LogOut size={20} />
             Log Out
           </button>
