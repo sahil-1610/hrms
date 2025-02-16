@@ -6,6 +6,7 @@ export interface VacancyDocument extends Document {
   description: string;
   positions: number;
   isActive: boolean;
+  hiringManager: string; // New field for Hiring Manager
 }
 
 const VacancySchema: Schema<VacancyDocument> = new Schema(
@@ -15,6 +16,7 @@ const VacancySchema: Schema<VacancyDocument> = new Schema(
     description: { type: String, required: true },
     positions: { type: Number, required: true },
     isActive: { type: Boolean, default: true },
+    hiringManager: { type: String, required: true }, // New field added here
   },
   { timestamps: true },
 );
@@ -22,4 +24,5 @@ const VacancySchema: Schema<VacancyDocument> = new Schema(
 const Vacancy: Model<VacancyDocument> =
   mongoose.models.Vacancy ||
   mongoose.model<VacancyDocument>("Vacancy", VacancySchema);
+
 export default Vacancy;

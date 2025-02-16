@@ -68,7 +68,7 @@ const VacancyForm: React.FC = () => {
         isActive: vacancyForm.isActive,
         hiringManager: vacancyForm.hiringManager,
       };
-
+      console.log(vacancyForm);
       const res = await fetch("/api/recruitment/jobvacancy", {
         method: "POST",
         headers: {
@@ -113,6 +113,7 @@ const VacancyForm: React.FC = () => {
           </label>
           <input
             type="text"
+            name="vacancyName"
             placeholder="Enter vacancy name"
             value={vacancyForm.vacancyName}
             onChange={(e) => handleChange("vacancyName", e.target.value)}
@@ -128,6 +129,7 @@ const VacancyForm: React.FC = () => {
           </label>
           <input
             type="text"
+            name="jobTitle"
             placeholder="Enter job title"
             value={vacancyForm.jobTitle}
             onChange={(e) => handleChange("jobTitle", e.target.value)}
@@ -142,6 +144,7 @@ const VacancyForm: React.FC = () => {
             Description
           </label>
           <textarea
+            name="description"
             rows={4}
             placeholder="Enter job description"
             value={vacancyForm.description}
@@ -170,6 +173,7 @@ const VacancyForm: React.FC = () => {
           </label>
           <input
             type="text"
+            name="hiringManager"
             placeholder="Enter hiring manager name"
             value={vacancyForm.hiringManager}
             onChange={(e) => handleChange("hiringManager", e.target.value)}
@@ -185,6 +189,7 @@ const VacancyForm: React.FC = () => {
           </label>
           <input
             type="number"
+            name="positions"
             placeholder="Enter number of positions"
             value={vacancyForm.positions}
             onChange={(e) => handleChange("positions", Number(e.target.value))}

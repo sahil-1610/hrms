@@ -5,6 +5,7 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Image from "next/image";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Pen } from "lucide-react";
+// import Cookies from "js-cookie"; // You can remove this if you no longer need to read the token
 
 interface ProfileData {
   coverImage: string;
@@ -19,8 +20,8 @@ interface ProfileData {
 }
 
 const HRProfile: React.FC = () => {
-  // Instead of localStorage, we use js-cookie to read the token.
-  const [token, setToken] = useState<string | null>(null);
+  // Remove token state if using HTTP-only cookies.
+  // const [token, setToken] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [profileData, setProfileData] = useState<ProfileData>({
     coverImage: "/images/cover/cover-01.png",
@@ -38,7 +39,15 @@ const HRProfile: React.FC = () => {
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
 
-  // When token exists, fetch the HR profile.
+  // No need to retrieve token on the client if it's HTTP-only.
+  // useEffect(() => {
+  //   const storedToken = Cookies.get("token");
+  //   if (storedToken) {
+  //     setToken(storedToken);
+  //   }
+  // }, []);
+
+  // When component mounts, fetch the HR profile.
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -81,10 +90,6 @@ const HRProfile: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!token) {
-      alert("No token found. Please log in again.");
-      return;
-    }
     try {
       const formData = new FormData();
       formData.append("name", profileData.name);
@@ -104,9 +109,11 @@ const HRProfile: React.FC = () => {
 
       const res = await fetch(`/api/hrprofile`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        // Remove Authorization header if you rely solely on HTTP-only cookies.
+        // headers: {
+        //   Authorization: `Bearer ${token}`,
+        // },
+        credentials: "include", // Ensure cookies are sent
         body: formData,
       });
       const data = await res.json();

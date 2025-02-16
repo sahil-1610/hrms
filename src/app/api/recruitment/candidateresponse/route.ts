@@ -3,18 +3,43 @@ export const runtime = "nodejs";
 import { NextResponse, NextRequest } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Person from "@/models/Person.model";
+// Ensure Vacancy model is imported for population side effects.
 import "@/models/Vacancy.model";
 import { v2 as cloudinary } from "cloudinary";
 import { Buffer } from "buffer";
+import { jwtVerify } from "jose";
 
-// Configure Cloudinary using environment variables
+// Configure Cloudinary using environment variables.
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// POST handler remains unchanged...
+// Helper function to authorize requests.
+// This function now looks for the token in cookies (expected under the name "token").
+async function authorize(req: NextRequest): Promise<boolean> {
+  try {
+    const token = req.cookies.get("token")?.value;
+    if (!token) {
+      console.error("Authorization failed: No token in cookies");
+      return false;
+    }
+
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET as string);
+    await jwtVerify(token, secret);
+    return true;
+  } catch (error) {
+    console.error("Authorization failed:", error);
+    return false;
+  }
+}
+
+/**
+ * POST /api/candidate/application
+ * Creates a new candidate application.
+ * This method remains public (no authorization required).
+ */
 export async function POST(req: NextRequest) {
   try {
     await dbConnect();
@@ -102,9 +127,17 @@ export async function POST(req: NextRequest) {
 /**
  * GET /api/candidate/application?vacancyId=...
  * Retrieves candidate applications.
- * If a vacancyId is provided, returns only candidates who applied for that vacancy.
+ * This method is restricted to authorized users only.
  */
 export async function GET(req: NextRequest) {
+  // Require authorization for GET requests.
+  if (!(await authorize(req))) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
   try {
     await dbConnect();
     const vacancyId = req.nextUrl.searchParams.get("vacancyId");

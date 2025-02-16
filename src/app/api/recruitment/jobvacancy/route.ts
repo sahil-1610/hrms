@@ -1,17 +1,43 @@
-// src/app/api/recruitment/jobvacancy/route.ts
 export const runtime = "nodejs";
 
 import { NextResponse, NextRequest } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Vacancy from "@/models/Vacancy.model";
+import { jwtVerify } from "jose";
+
+// Helper function to authorize requests from cookies.
+async function authorize(req: NextRequest): Promise<boolean> {
+  try {
+    const token = req.cookies.get("token")?.value;
+    if (!token) return false;
+
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET as string);
+    await jwtVerify(token, secret);
+    return true;
+  } catch (error) {
+    console.error("Authorization failed:", error);
+    return false;
+  }
+}
 
 /**
  * POST /api/recruitment/jobvacancy
  * Creates a new job vacancy.
  */
 export async function POST(req: NextRequest) {
+  // Only allow authorized users.
+  if (!(await authorize(req))) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
   try {
     await dbConnect();
+    const requestData = await req.json();
+    console.log("Received request payload:", requestData);
+
     const {
       vacancyName,
       jobTitle,
@@ -19,7 +45,7 @@ export async function POST(req: NextRequest) {
       positions,
       isActive,
       hiringManager,
-    } = await req.json();
+    } = requestData;
 
     // Validate required fields.
     if (
@@ -43,8 +69,11 @@ export async function POST(req: NextRequest) {
       isActive: isActive !== undefined ? isActive : true,
       hiringManager,
     });
+    console.log("Vacancy to be saved:", vacancy);
 
     const savedVacancy = await vacancy.save();
+    console.log("Saved Vacancy:", savedVacancy);
+
     return NextResponse.json(
       { success: true, data: savedVacancy },
       { status: 201 },
