@@ -142,18 +142,24 @@ const CandidateOperation: React.FC = () => {
     setLoading(true);
     setMessage("");
     try {
-      const response = await fetch("/api/candidateDecision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          candidateid: candidate?._id,
-          fullName: candidate?.fullName,
-          email: candidate?.email,
-          decision,
-        }),
-      });
+      const response = await fetch(
+        "/api/recruitment/candidateresponse/candidatedecision",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            candidateid: candidate?._id,
+            fullName: candidate?.fullName,
+            email: candidate?.email,
+            decision: decision.decision,
+          }),
+        },
+      );
       const data = await response.json();
       setMessage(data.message);
+      if (data.redirect && decision.decision === "accepted") {
+        router.push(`/recruitment/genrateletter`);
+      }
     } catch (error) {
       setMessage("Something went wrong!");
     } finally {
@@ -161,9 +167,10 @@ const CandidateOperation: React.FC = () => {
     }
   };
 
-
   if (!candidate) {
-    return <div className="p-6 text-primary-500">Loading Candidate Details</div>;
+    return (
+      <div className="text-primary-500 p-6">Loading Candidate Details</div>
+    );
   }
   return (
     <div className="p-6">
