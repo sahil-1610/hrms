@@ -1,4 +1,3 @@
-// models/Vacancy.ts
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface VacancyDocument extends Document {

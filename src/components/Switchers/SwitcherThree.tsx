@@ -1,6 +1,8 @@
 import { useState } from "react";
-
-const SwitcherThree = () => {
+interface SwitcherThreeProps {
+  onChange: (value: boolean) => void;
+}
+const SwitcherThree: React.FC<SwitcherThreeProps> = ({ onChange }) => {
   const [enabled, setEnabled] = useState(false);
 
   return (

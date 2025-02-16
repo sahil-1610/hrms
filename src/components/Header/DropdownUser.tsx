@@ -18,33 +18,19 @@ const DropdownUser: React.FC = () => {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [profile, setProfile] = useState<HRProfileData | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-
-  // On mount, retrieve the token from localStorage.
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      setToken(storedToken);
-    } else {
-      console.warn("No token found in localStorage.");
-    }
-  }, []);
 
   // When the token is available, fetch the HR profile.
   useEffect(() => {
-    if (!token) return;
     const fetchProfile = async () => {
       try {
         const res = await fetch(`/api/hrprofile`, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Ensure cookies are sent
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          setProfile(data.data);
+          setProfile((prev) => ({ ...prev, ...data.data }));
         } else {
           console.error("Failed to fetch profile:", data.message);
         }
@@ -53,12 +39,25 @@ const DropdownUser: React.FC = () => {
       }
     };
     fetchProfile();
-  }, [token]);
+  }, []);
 
   // Logout function: remove token and redirect to sign in page.
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/auth/signin");
+  const handleLogout = async () => {
+    try {
+      // Call the sign-out API endpoint to clear the cookie.
+      const res = await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include", // Ensure cookies are sent with the request.
+      });
+      if (res.ok) {
+        // Redirect to the sign-in page after successful logout.
+        router.push("/auth/signin");
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   return (

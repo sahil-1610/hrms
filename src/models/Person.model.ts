@@ -1,10 +1,12 @@
-// models/Person.ts (snippet update)
+import mongoose, { Schema, Document, Model } from "mongoose";
+import Vacancy from "@/models/Vacancy.model";
+
 export interface EmailHistoryEntry {
   emailId: string;
   subject: string;
   body: string;
   sentDate: Date;
-  direction: "sent" | "received"; // optionally indicate if the email was sent or received
+  direction: "sent" | "received";
 }
 
 export interface PersonDocument extends Document {
@@ -17,7 +19,8 @@ export interface PersonDocument extends Document {
   linkedIn: string;
   role: "candidate" | "employee";
   status: "active" | "inactive";
-  resume?: string;
+  resume: string;
+  vacancyId: mongoose.Types.ObjectId;
   candidateData?: {
     applicationStatus: boolean;
     notes: string;
@@ -27,7 +30,7 @@ export interface PersonDocument extends Document {
     hireDate: Date;
     performanceScore: string;
   };
-  emailHistory?: EmailHistoryEntry[]; // Embedded email history array
+  emailHistory?: EmailHistoryEntry[];
 }
 
 const PersonSchema: Schema<PersonDocument> = new Schema(
@@ -42,6 +45,7 @@ const PersonSchema: Schema<PersonDocument> = new Schema(
     role: { type: String, enum: ["candidate", "employee"], required: true },
     status: { type: String, enum: ["active", "inactive"], required: true },
     resume: { type: String },
+    vacancyId: { type: Schema.Types.ObjectId, ref: "Vacancy" },
     candidateData: {
       applicationStatus: { type: Boolean },
       notes: { type: String },
@@ -63,3 +67,8 @@ const PersonSchema: Schema<PersonDocument> = new Schema(
   },
   { timestamps: true },
 );
+
+const Person: Model<PersonDocument> =
+  mongoose.models.Person ||
+  mongoose.model<PersonDocument>("Person", PersonSchema);
+export default Person;

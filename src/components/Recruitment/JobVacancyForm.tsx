@@ -1,152 +1,220 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, FormEvent } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-import CheckboxOne from "@/components/Checkboxes/CheckboxOne";
-import SwitcherOne from "@/components/Switchers/SwitcherOne";
-import DatePickerOne from "@/components/FormElements/DatePicker/DatePickerOne";
-import MultiSelect from "@/components/FormElements/MultiSelect";
-import SelectGroupTwo from "@/components/SelectGroup/SelectGroupTwo";
-import SwitcherTwo from "../Switchers/SwitcherTwo";
-import SwitcherThree from "../Switchers/SwitcherThree";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import { chatWithAI } from "@/helpers/geminiAIModel";
+import SwitcherThree from "@/components/Switchers/SwitcherThree";
 
-// Sample job descriptions, including one matching the context provided.
-const sampleDescriptions: string[] = [
-  `About the job  
-Skills: HTML, CSS, JavaScript, React, Angular, Vue.js, Responsive Design, Git,  
-
-Job Overview  
-We are seeking a Front End Development Intern to join our team remotely. This is a fresher-level position available in multiple locations including Pune, Mumbai, Bangalore, Kolkata, Noida, and Gurgaon. This internship offers an excellent opportunity for individuals with 0 years of work experience to gain valuable industry knowledge and practical skills.
-
-Qualifications and Skills  
-- Proficiency in HTML, JavaScript, and React (Mandatory)  
-- Familiarity with CSS for consistent, responsive layouts  
-- Basic understanding of Angular and experience with Vue.js is a plus  
-- Knowledge of responsive design principles and Git for version control  
-- Strong problem-solving skills and excellent communication abilities  
-
-Roles and Responsibilities  
-- Assist in the development of front-end features using HTML, JavaScript, and React  
-- Collaborate with the design team to implement user-friendly pages  
-- Debug and optimize application performance  
-- Participate in team meetings and engage with senior developers for guidance  
-
-Desired Skills and Experience: HTML, CSS, JavaScript, React, Angular, Vue.js, Responsive Design, Git.`,
-  "Join our team to create innovative solutions in a dynamic work environment. We value creativity, collaboration, and continuous learning. This role offers the opportunity to work on live projects, develop your technical skills, and contribute to the company's success.",
-  "This position offers a unique chance for fresh graduates to enter the industry. You'll work closely with experienced developers, learn the latest technologies, and build user-friendly applications in a supportive, fast-paced environment.",
-];
+interface VacancyFormData {
+  vacancyName: string;
+  jobTitle: string;
+  description: string;
+  positions: number;
+  isActive: boolean;
+  hiringManager: string;
+}
 
 const VacancyForm: React.FC = () => {
-  // Local state for form fields
-  const [vacancyName, setVacancyName] = useState<string>("");
-  const [jobTitle, setJobTitle] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
-  const [numPositions, setNumPositions] = useState<number>(0);
+  const [vacancyForm, setVacancyForm] = useState<VacancyFormData>({
+    vacancyName: "",
+    jobTitle: "",
+    description: "",
+    positions: 0,
+    isActive: true,
+    hiringManager: "",
+  });
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // Generate a random job description from the sample descriptions.
-  const generateDescription = () => {
-    const randomIndex = Math.floor(Math.random() * sampleDescriptions.length);
-    setDescription(sampleDescriptions[randomIndex]);
+  const handleChange = (
+    field: keyof VacancyFormData,
+    value: string | number | boolean,
+  ) => {
+    setVacancyForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const formatJobDescription = (text: string) => {
+    return text.trim();
+  };
+
+  const generateDescription = async () => {
+    if (!vacancyForm.jobTitle) {
+      alert("Please enter a job title before generating a description.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const prompt = `Generate a well-structured job description for the position of ${vacancyForm.jobTitle}. Include sections for Responsibilities, Qualifications, and Benefits with properly formatted bullet points.`;
+      const generatedText = await chatWithAI(prompt);
+      const formattedText = formatJobDescription(generatedText);
+      setVacancyForm((prev) => ({ ...prev, description: formattedText }));
+    } catch (error) {
+      console.error("Error generating job description:", error);
+      alert("Failed to generate job description. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const payload = {
+        vacancyName: vacancyForm.vacancyName,
+        jobTitle: vacancyForm.jobTitle,
+        description: vacancyForm.description,
+        positions: vacancyForm.positions,
+        isActive: vacancyForm.isActive,
+        hiringManager: vacancyForm.hiringManager,
+      };
+
+      const res = await fetch("/api/recruitment/jobvacancy", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to create vacancy");
+      }
+      console.log("Vacancy created successfully:", data.data);
+      alert("Vacancy created successfully");
+      // Optionally reset the form after creation.
+      setVacancyForm({
+        vacancyName: "",
+        jobTitle: "",
+        description: "",
+        positions: 0,
+        isActive: true,
+        hiringManager: "",
+      });
+    } catch (error: any) {
+      console.error("Vacancy submission error:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <>
+    <div className="mx-auto max-w-3xl rounded-md bg-white p-6 shadow-md dark:bg-boxdark">
       <Breadcrumb pageName="Vacancy Form" />
+      <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
+        Create Vacancy
+      </h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Vacancy Name */}
+        <div>
+          <label className="block text-sm font-medium text-black dark:text-white">
+            Vacancy Name
+          </label>
+          <input
+            type="text"
+            placeholder="Enter vacancy name"
+            value={vacancyForm.vacancyName}
+            onChange={(e) => handleChange("vacancyName", e.target.value)}
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white"
+            required
+          />
+        </div>
 
-      <div className="mx-auto max-w-3xl rounded-md bg-white p-6 shadow-md dark:bg-boxdark">
-        <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">
-          Create Vacancy
-        </h2>
+        {/* Job Title */}
+        <div>
+          <label className="block text-sm font-medium text-black dark:text-white">
+            Job Title
+          </label>
+          <input
+            type="text"
+            placeholder="Enter job title"
+            value={vacancyForm.jobTitle}
+            onChange={(e) => handleChange("jobTitle", e.target.value)}
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white"
+            required
+          />
+        </div>
 
-        <form className="space-y-4">
-          {/* Vacancy Name */}
-          <div>
-            <label className="block text-sm font-medium text-black dark:text-white">
-              Vacancy Name
-            </label>
-            <input
-              type="text"
-              placeholder="Enter vacancy name"
-              value={vacancyName}
-              onChange={(e) => setVacancyName(e.target.value)}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white"
-            />
-          </div>
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-black dark:text-white">
+            Description
+          </label>
+          <textarea
+            rows={4}
+            placeholder="Enter job description"
+            value={vacancyForm.description}
+            onChange={(e) => handleChange("description", e.target.value)}
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white"
+            required
+          ></textarea>
+          <button
+            type="button"
+            onClick={generateDescription}
+            disabled={loading}
+            className="mt-2 rounded bg-gray-200 px-3 py-1 text-xs font-medium text-black hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+          >
+            {loading
+              ? "Generating..."
+              : vacancyForm.description
+                ? "Generate Other"
+                : "Generate Job Description"}
+          </button>
+        </div>
 
-          {/* Job Title */}
-          <div>
-            <label className="block text-sm font-medium text-black dark:text-white">
-              Job Title
-            </label>
-            <input
-              type="text"
-              placeholder="Enter job title"
-              value={jobTitle}
-              onChange={(e) => setJobTitle(e.target.value)}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white"
-            />
-          </div>
+        {/* Hiring Manager */}
+        <div>
+          <label className="block text-sm font-medium text-black dark:text-white">
+            Hiring Manager Name
+          </label>
+          <input
+            type="text"
+            placeholder="Enter hiring manager name"
+            value={vacancyForm.hiringManager}
+            onChange={(e) => handleChange("hiringManager", e.target.value)}
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white"
+            required
+          />
+        </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-black dark:text-white">
-              Description
-            </label>
-            <textarea
-              rows={4}
-              placeholder="Enter job description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white"
-            ></textarea>
-            <button
-              type="button"
-              onClick={generateDescription}
-              className="mt-2 rounded bg-gray-200 px-3 py-1 text-xs font-medium text-black hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-            >
-              {description ? "Generate Other" : "Generate Job Description"}
-            </button>
-          </div>
+        {/* Number of Positions */}
+        <div>
+          <label className="block text-sm font-medium text-black dark:text-white">
+            Number of Positions
+          </label>
+          <input
+            type="number"
+            placeholder="Enter number of positions"
+            value={vacancyForm.positions}
+            onChange={(e) => handleChange("positions", Number(e.target.value))}
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white"
+            required
+          />
+        </div>
 
-          {/* Hiring Manager */}
-          <div>
-            <SelectGroupTwo />
-          </div>
+        {/* Is Active */}
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-black dark:text-white">
+            Is Active
+          </label>
+          <SwitcherThree
+            onChange={(value: boolean) => handleChange("isActive", value)}
+          />
+        </div>
 
-          {/* Number of Positions */}
-          <div>
-            <label className="block text-sm font-medium text-black dark:text-white">
-              Number of Positions
-            </label>
-            <input
-              type="number"
-              placeholder="Enter number of positions"
-              value={numPositions}
-              onChange={(e) => setNumPositions(Number(e.target.value))}
-              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white"
-            />
-          </div>
-
-          {/* Is Active */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-black dark:text-white">
-              Is Active
-            </label>
-            <SwitcherThree />
-          </div>
-
-          {/* Submit Button */}
-          <div>
-            <button
-              type="submit"
-              className="w-full rounded-md bg-primary px-4 py-2 text-white transition hover:bg-opacity-80"
-            >
-              Create Vacancy
-            </button>
-          </div>
-        </form>
-      </div>
-    </>
+        {/* Submit Button */}
+        <div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-md bg-primary px-4 py-2 text-white transition hover:bg-opacity-80"
+          >
+            {loading ? "Submitting..." : "Create Vacancy"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

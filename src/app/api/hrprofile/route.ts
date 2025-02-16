@@ -1,25 +1,36 @@
 export const runtime = "nodejs";
 
-import { NextResponse, NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import HR from "@/models/Hr.model";
 import jwt from "jsonwebtoken";
 import { v2 as cloudinary } from "cloudinary";
+import { Buffer } from "buffer";
 
-// Configure Cloudinary using environment variables
+// Configure Cloudinary using environment variables.
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // e.g. "mycloudname"
   api_key: process.env.CLOUDINARY_API_KEY, // e.g. "123456789012345"
   api_secret: process.env.CLOUDINARY_API_SECRET, // e.g. "mysecretkey"
 });
 
-// Helper: Extract user ID from JWT in the Authorization header.
+// Helper: Extract user ID from token stored in cookies or in the Authorization header.
 function getUserIdFromRequest(req: NextRequest): string | null {
-  const authHeader = req.headers.get("authorization");
-  console.log("Received auth header:", authHeader);
-  if (!authHeader) return null;
-  const token = authHeader.split(" ")[1];
+  // Try to get the token from cookies first.
+  const tokenFromCookie = req.cookies.get("token")?.value;
+  let token = tokenFromCookie;
+
+  // If token is not found in cookies, try the Authorization header.
+  if (!token) {
+    const authHeader = req.headers.get("authorization");
+    console.log("Received auth header:", authHeader);
+    if (authHeader) {
+      token = authHeader.split(" ")[1];
+    }
+  }
+
   if (!token) return null;
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
       id: string;

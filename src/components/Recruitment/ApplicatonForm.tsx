@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 
 interface ApplyForVacancyProps {
   vacancyid: string;
 }
 
-interface FormData {
+interface FormDataState {
   fullName: string;
   email: string;
   phone: string;
@@ -22,11 +22,11 @@ interface FormData {
 export default function ApplyForVacancy({
   vacancyid,
 }: ApplyForVacancyProps): JSX.Element {
-  // Get query parameters using useSearchParams hook
+  // Use searchParams to get additional query params if needed.
   const searchParams = useSearchParams();
-  const jobName = searchParams.get("jobName") || "Job Vacancy";
+  const jobName = searchParams?.get("jobName") || "Job Vacancy";
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<FormDataState>({
     fullName: "",
     email: "",
     phone: "",
@@ -37,6 +37,8 @@ export default function ApplyForVacancy({
     resume: null,
     notes: "",
   });
+
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -51,10 +53,57 @@ export default function ApplyForVacancy({
     setFormData((prev) => ({ ...prev, resume: files[0] }));
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log("Submitted", formData);
-    // Add your submit logic here.
+    setLoading(true);
+    try {
+      // Construct FormData to include file upload.
+      const payload = new FormData();
+      payload.append("fullName", formData.fullName);
+      payload.append("email", formData.email);
+      payload.append("phone", formData.phone);
+      payload.append("address", formData.address);
+      payload.append("education", formData.education);
+      payload.append("experience", formData.experience);
+      payload.append("linkedIn", formData.linkedIn);
+      payload.append("notes", formData.notes);
+      // Include vacancyId to tie this application to a specific vacancy.
+      payload.append("vacancyId", vacancyid);
+
+      if (formData.resume) {
+        payload.append("resume", formData.resume);
+      }
+
+      const res = await fetch("/api/recruitment/candidateresponse", {
+        method: "POST",
+        // Note: When sending FormData, do not set Content-Type header manually.
+        body: payload,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to submit application");
+      }
+      // Assume the API response contains a property named applicationLink.
+      alert("Application submitted successfully");
+      // Optionally reset form
+      setFormData({
+        fullName: "",
+        email: "",
+        phone: "",
+        address: "",
+        education: "",
+        experience: "",
+        linkedIn: "",
+        resume: null,
+        notes: "",
+      });
+    } catch (error: any) {
+      console.error("Submission error:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -194,6 +243,7 @@ export default function ApplyForVacancy({
         <button
           type="submit"
           className="w-full rounded bg-blue-600 p-2 text-white transition-colors hover:bg-blue-700"
+          disabled={loading}
         >
           Submit Application
         </button>

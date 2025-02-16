@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Breadcrumb from "../Breadcrumbs/Breadcrumb";
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { X } from "lucide-react";
 
+interface CandidateData {
+  applicationStatus: boolean;
+  notes: string;
+}
 interface Candidate {
-  candidateid: number;
+  _id: string; // Candidate document ID from MongoDB
   fullName: string;
   email: string;
   phone: string;
@@ -14,110 +19,139 @@ interface Candidate {
   experience: string;
   linkedIn: string;
   notes: string;
+  vacancyId: string | { _id: string; vacancyName: string; description: string };
   category: string;
-  resume: string; // URL or path to the resume file
+  resume: string; // URL to the resume file
+  candidateData?: CandidateData;
 }
 
-const candidateData: Candidate[] = [
-  {
-    candidateid: 1,
-    fullName: "Aarav Patel",
-    email: "aarav.patel@example.com",
-    phone: "+91 9876543210",
-    address: "Mumbai, India",
-    education: "B.Tech in Computer Science",
-    experience: "3 years",
-    linkedIn: "https://linkedin.com/in/aaravpatel",
-    notes: "Full-stack developer with 3 years of experience.",
-    category: "Software Engineer",
-    resume: "/resumes/aarav_patel_resume.pdf",
-  },
-  {
-    candidateid: 2,
-    fullName: "Priya Sharma",
-    email: "priya@example.com",
-    phone: "+91 9123456789",
-    address: "Bangalore, India",
-    education: "B.Sc in Data Science",
-    experience: "2 years",
-    linkedIn: "https://linkedin.com/in/priyasharma",
-    notes: "Skilled in data analysis and visualization.",
-    category: "Data Scientist",
-    resume: "/resumes/priya_sharma_cv.pdf",
-  },
-  {
-    candidateid: 3,
-    fullName: "Rohan Mehta",
-    email: "rohan.mehta@example.com",
-    phone: "+91 9988776655",
-    address: "Hyderabad, India",
-    education: "Diploma in DevOps",
-    experience: "4 years",
-    linkedIn: "https://linkedin.com/in/rohanmehta",
-    notes: "DevOps engineer with expertise in CI/CD pipelines.",
-    category: "DevOps Engineer",
-    resume: "/resumes/rohan_mehta_resume.pdf",
-  },
-];
+// A simple component to display the analysis result.
+interface AnalysisResultCardProps {
+  result: string;
+  onClose: () => void;
+}
+
+const AnalysisResultCard: React.FC<AnalysisResultCardProps> = ({
+  result,
+  onClose,
+}) => {
+  return (
+    <div className="mb-4 rounded-md border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex justify-between">
+        <h3 className="text-lg font-semibold text-black dark:text-white">
+          Resume Analysis
+        </h3>
+        <button
+          onClick={onClose}
+          className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+        >
+          <X size={20} />
+        </button>
+      </div>
+      <textarea
+        readOnly
+        value={result}
+        className="mt-2 w-full rounded-md border p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+        rows={3}
+      ></textarea>
+    </div>
+  );
+};
 
 const CandidateOperation: React.FC = () => {
-  const params = useParams();
   const router = useRouter();
-  const candidate = candidateData.find(
-    (c) => c.candidateid === Number(params.candidateid),
-  );
-
+  const params = useParams();
+  const candidateId = params?.candidateid; // Ensure your route is defined with [candidateid]
+  const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [message, setMessage] = useState<string>("");
   const [alignmentResult, setAlignmentResult] = useState<string>("");
+  const [showAnalysis, setShowAnalysis] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>("");
 
-  if (!candidate) {
-    return <div className="text-red-500">Candidate not found!</div>;
-  }
+  useEffect(() => {
+    if (!candidateId) return;
+    const fetchCandidate = async () => {
+      setLoading(true);
+      try {
+        // Pass candidateId as a query parameter.
+        const res = await fetch(
+          `/api/recruitment/candidateresponse?candidateId=${candidateId}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+        const data = await res.json();
+        if (res.ok && data.success) {
+          // If API returns an array, pick the first candidate.
+          const fetchedCandidate = Array.isArray(data.data)
+            ? data.data[0]
+            : data.data;
+          setCandidate(fetchedCandidate);
+        } else {
+          setMessage(data.message || "Candidate not found");
+        }
+      } catch (error) {
+        console.error("Fetch candidate error:", error);
+        setMessage("Error fetching candidate details");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCandidate();
+  }, [candidateId]);
 
-  // Function to simulate sending the resume text (extracted from the resume URL)
-  // along with a job description to the Gemini API for analysis.
+  // Function to analyze the resume using your backend API.
   const handleAnalyzeResume = async () => {
+    if (!candidate) return;
     setLoading(true);
     setAlignmentResult("");
     setMessage("");
-
     try {
-      // For demonstration, we'll simulate an API call with a timeout.
-      // In your real implementation, you might:
-      // 1. Call an API route that fetches the resume file from candidate.resume,
-      //    extracts its text, then sends it along with the job description to Gemini.
-      // 2. Receive a response with a score or detailed analysis.
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Use the vacancy description from the populated vacancy field.
+      const vacancyDescription =
+        typeof candidate.vacancyId === "object"
+          ? candidate.vacancyId.description
+          : "";
+      console.log("Vacancy Description:", vacancyDescription);
 
-      // Simulated response – replace with actual Gemini API response.
-      const simulatedResponse =
-        "The resume is 85% aligned with the job description based on the required skills and experience.";
-
-      setAlignmentResult(simulatedResponse);
-    } catch (error) {
+      const res = await fetch("/api/recruitment/compare-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resumeUrl: candidate.resume,
+          vacancyDescription,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to analyze resume");
+      }
+      setAlignmentResult(data.alignmentScore);
+      setShowAnalysis(true);
+    } catch (error: any) {
+      console.error("Error analyzing resume:", error);
       setMessage("Error analyzing resume. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Function to simulate sending a decision (accept/reject).
   const handleDecision = async (decision: { decision: string }) => {
     setLoading(true);
     setMessage("");
-
     try {
       const response = await fetch("/api/candidateDecision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          candidateid: candidate.candidateid,
-          fullName: candidate.fullName,
-          email: candidate.email,
+          candidateid: candidate?._id,
+          fullName: candidate?.fullName,
+          email: candidate?.email,
           decision,
         }),
       });
-
       const data = await response.json();
       setMessage(data.message);
     } catch (error) {
@@ -127,10 +161,20 @@ const CandidateOperation: React.FC = () => {
     }
   };
 
+
+  if (!candidate) {
+    return <div className="p-6 text-primary-500">Loading Candidate Details</div>;
+  }
   return (
-    <>
+    <div className="p-6">
       <Breadcrumb pageName="Candidate Operation" />
-      <div className="mx-auto max-w-3xl p-6">
+      {showAnalysis && alignmentResult && (
+        <AnalysisResultCard
+          result={alignmentResult}
+          onClose={() => setShowAnalysis(false)}
+        />
+      )}
+      <div className="mx-auto max-w-3xl rounded-md bg-white p-6 shadow-md dark:bg-gray-800">
         <h1 className="text-2xl font-bold text-black dark:text-white">
           {candidate.fullName}
         </h1>
@@ -164,21 +208,27 @@ const CandidateOperation: React.FC = () => {
           </a>
         </p>
         <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          <strong>Notes:</strong> {candidate.notes}
+          <strong>Notes:</strong>{" "}
+          {candidate.candidateData?.notes || "No additional notes"}
         </p>
         <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
           <strong>Resume:</strong>{" "}
           <a
-            href={`/${candidate.resume}`}
-            className="text-blue-600 underline"
+            href={candidate.resume}
             target="_blank"
             rel="noopener noreferrer"
+            className="text-blue-600 underline dark:text-blue-400"
           >
             Download
           </a>
         </p>
+        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+          <strong>Vacancy Applied For:</strong>{" "}
+          {typeof candidate.vacancyId === "object"
+            ? candidate.vacancyId.vacancyName
+            : candidate.vacancyId || "Not provided"}
+        </p>
 
-        {/* Analyze Resume Button & Result */}
         <div className="mt-6">
           <button
             onClick={handleAnalyzeResume}
@@ -187,17 +237,8 @@ const CandidateOperation: React.FC = () => {
           >
             {loading ? "Analyzing..." : "Analyze Resume"}
           </button>
-          {alignmentResult && (
-            <textarea
-              readOnly
-              value={alignmentResult}
-              className="mt-4 w-full rounded-md border p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              rows={3}
-            ></textarea>
-          )}
         </div>
 
-        {/* Accept & Reject Buttons */}
         <div className="mt-4 flex gap-4">
           <button
             className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:bg-gray-400"
@@ -216,12 +257,12 @@ const CandidateOperation: React.FC = () => {
         </div>
 
         {message && (
-          <p className="mt-4 text-sm text-gray-700 dark:text-gray-300">
+          <p className="mt-4 text-sm text-gray-700 dark:text-red-300">
             {message}
           </p>
         )}
       </div>
-    </>
+    </div>
   );
 };
 

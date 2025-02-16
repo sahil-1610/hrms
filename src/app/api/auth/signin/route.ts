@@ -1,4 +1,3 @@
-// src/app/api/auth/signin/route.ts
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
@@ -10,7 +9,6 @@ import jwt from "jsonwebtoken";
 export async function POST(req: NextRequest) {
   try {
     await dbConnect();
-
     const { email, password } = await req.json();
 
     if (!email || !password) {
@@ -20,7 +18,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find the HR admin by email.
     const hrAdmin = await HR.findOne({ email });
     if (!hrAdmin) {
       return NextResponse.json(
@@ -29,7 +26,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Compare the provided password with the stored hashed password.
     const isMatch = await bcrypt.compare(password, hrAdmin.password);
     if (!isMatch) {
       return NextResponse.json(
@@ -38,7 +34,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate a JWT token containing basic user info.
     const token = jwt.sign(
       { id: hrAdmin._id, email: hrAdmin.email, name: hrAdmin.name },
       process.env.JWT_SECRET as string,
@@ -46,10 +41,18 @@ export async function POST(req: NextRequest) {
     );
     console.log("Generated token:", token);
 
-    return NextResponse.json(
-      { message: "Sign in successful.", token },
+    const response = NextResponse.json(
+      { message: "Sign in successful." },
       { status: 200 },
     );
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24,
+      sameSite: "lax",
+    });
+    return response;
   } catch (error: any) {
     console.error("Sign in error:", error);
     return NextResponse.json(

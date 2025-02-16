@@ -19,6 +19,7 @@ interface ProfileData {
 }
 
 const HRProfile: React.FC = () => {
+  // Instead of localStorage, we use js-cookie to read the token.
   const [token, setToken] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -37,27 +38,14 @@ const HRProfile: React.FC = () => {
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
 
-  // On mount, check for token.
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      setToken(storedToken);
-    } else {
-      console.warn("No token found in localStorage.");
-    }
-  }, []);
-
-  // Fetch profile when token is available.
+  // When token exists, fetch the HR profile.
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!token) return;
       try {
         const res = await fetch(`/api/hrprofile`, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Ensure cookies are sent
         });
         const data = await res.json();
         if (res.ok && data.success) {
@@ -70,7 +58,7 @@ const HRProfile: React.FC = () => {
       }
     };
     fetchProfile();
-  }, [token]);
+  }, []);
 
   const handleChange = (field: keyof ProfileData, value: string) => {
     setProfileData((prev) => ({ ...prev, [field]: value }));
@@ -83,6 +71,7 @@ const HRProfile: React.FC = () => {
     if (event.target.files && event.target.files[0]) {
       const fileURL = URL.createObjectURL(event.target.files[0]);
       setProfileData((prev) => ({ ...prev, [field]: fileURL }));
+
       if (field === "coverImage") {
         setCoverImageFile(event.target.files[0]);
       } else if (field === "profileImage") {
@@ -129,9 +118,9 @@ const HRProfile: React.FC = () => {
       }
       console.log("Profile updated successfully:", data.data);
       setIsEditing(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Update error:", error);
-      alert(`Error updating profile: ${error}`);
+      alert(`Error updating profile: ${error.message}`);
     }
   };
 

@@ -1,18 +1,19 @@
-export const runtime = "nodejs"; // Ensure Node.js runtime
+export const runtime = "nodejs";
 
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    // Create a response that indicates sign out was successful.
-    const response = NextResponse.json(
-      { message: "Sign out successful." },
-      { status: 200 },
-    );
-
-    // Clear the cookie by setting it to an empty string and expiring it immediately.
-    // Adjust the cookie name ("token") if needed.
-    response.cookies.set("token", "", { expires: new Date(0) });
+    // Create a redirect response to the sign-in page.
+    const response = NextResponse.redirect(new URL("/auth/signin", req.url));
+    // Clear the "token" cookie by setting it to an empty string and expiring it immediately.
+    response.cookies.set("token", "", {
+      path: "/",
+      expires: new Date(0),
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
     return response;
   } catch (error: any) {
     console.error("Sign out error:", error);
