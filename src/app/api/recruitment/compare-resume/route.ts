@@ -2,24 +2,8 @@ export const runtime = "nodejs";
 
 import { NextResponse, NextRequest } from "next/server";
 import { extractPdfText } from "@/helpers/extractPdfText";
-import { chatWithAI } from "@/helpers/geminiAIModel";
-import { jwtVerify } from "jose";
-
-// Helper function to check if the request is authenticated.
-// It now expects the token to be present in the cookies (under the key "token").
-async function authorize(req: NextRequest): Promise<boolean> {
-  try {
-    const token = req.cookies.get("token")?.value;
-    if (!token) return false;
-
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET as string);
-    await jwtVerify(token, secret);
-    return true;
-  } catch (error) {
-    console.error("Authorization failed:", error);
-    return false;
-  }
-}
+import { chatWithAI } from "@/utils/geminiAIModel";
+import authorize from "@/utils/authorize";
 
 export async function POST(req: NextRequest) {
   // Ensure the user is authenticated before processing the request.

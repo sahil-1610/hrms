@@ -6,7 +6,8 @@ export interface VacancyDocument extends Document {
   description: string;
   positions: number;
   isActive: boolean;
-  hiringManager: string; // New field for Hiring Manager
+  hiringManager: string;
+  hiringManagerEmail: string;
 }
 
 const VacancySchema: Schema<VacancyDocument> = new Schema(
@@ -16,7 +17,8 @@ const VacancySchema: Schema<VacancyDocument> = new Schema(
     description: { type: String, required: true },
     positions: { type: Number, required: true },
     isActive: { type: Boolean, default: true },
-    hiringManager: { type: String, required: true }, // New field added here
+    hiringManager: { type: String, required: true },
+    hiringManagerEmail: { type: String, required: true }, // New field added here
   },
   { timestamps: true },
 );

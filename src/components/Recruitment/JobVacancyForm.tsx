@@ -3,7 +3,7 @@
 import React, { useState, FormEvent } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
-import { chatWithAI } from "@/helpers/geminiAIModel";
+import { chatWithAI } from "@/utils/geminiAIModel";
 import SwitcherThree from "@/components/Switchers/SwitcherThree";
 
 interface VacancyFormData {
@@ -13,6 +13,7 @@ interface VacancyFormData {
   positions: number;
   isActive: boolean;
   hiringManager: string;
+  hiringManagerEmail: string;
 }
 
 const VacancyForm: React.FC = () => {
@@ -23,6 +24,7 @@ const VacancyForm: React.FC = () => {
     positions: 0,
     isActive: true,
     hiringManager: "",
+    hiringManagerEmail: "",
   });
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -67,6 +69,7 @@ const VacancyForm: React.FC = () => {
         positions: vacancyForm.positions,
         isActive: vacancyForm.isActive,
         hiringManager: vacancyForm.hiringManager,
+        hiringManagerEmail: vacancyForm.hiringManagerEmail,
       };
       console.log(vacancyForm);
       const res = await fetch("/api/recruitment/jobvacancy", {
@@ -90,6 +93,7 @@ const VacancyForm: React.FC = () => {
         positions: 0,
         isActive: true,
         hiringManager: "",
+        hiringManagerEmail: "",
       });
     } catch (error: any) {
       console.error("Vacancy submission error:", error);
@@ -181,6 +185,20 @@ const VacancyForm: React.FC = () => {
             required
           />
         </div>
+        <div>
+          <label className="block text-sm font-medium text-black dark:text-white">
+            Hiring Manager Email
+          </label>
+          <input
+            type="text"
+            name="hiringManagerEmail"
+            placeholder="Enter hiring manage Email"
+            value={vacancyForm.hiringManagerEmail}
+            onChange={(e) => handleChange("hiringManagerEmail", e.target.value)}
+            className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white"
+            required
+          />
+        </div>
 
         {/* Number of Positions */}
         <div>
@@ -190,6 +208,7 @@ const VacancyForm: React.FC = () => {
           <input
             type="number"
             name="positions"
+            min="1"
             placeholder="Enter number of positions"
             value={vacancyForm.positions}
             onChange={(e) => handleChange("positions", Number(e.target.value))}

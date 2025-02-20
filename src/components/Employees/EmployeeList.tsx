@@ -1,9 +1,11 @@
 "use client";
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
 interface Employee {
-  employeeid: number;
+  _id: string; // Use _id from MongoDB
   fullName: string;
   email: string;
   phone: string;
@@ -15,48 +17,45 @@ interface Employee {
   category: string;
 }
 
-const employee: Employee[] = [
-  {
-    employeeid: 1,
-    fullName: "Aarav Patel",
-    email: "aarav.patel@example.com",
-    phone: "+91 9876543210",
-    address: "Mumbai, India",
-    education: "B.Tech in Computer Science",
-    experience: "3 years",
-    linkedIn: "https://linkedin.com/in/aaravpatel",
-    notes: "Full-stack developer with 3 years of experience.",
-    category: "Software Engineer",
-  },
-  {
-    employeeid: 2,
-    fullName: "Priya Sharma",
-    email: "priya.sharma@example.com",
-    phone: "+91 9123456789",
-    address: "Bangalore, India",
-    education: "B.Sc in Data Science",
-    experience: "2 years",
-    linkedIn: "https://linkedin.com/in/priyasharma",
-    notes: "Skilled in data analysis and visualization.",
-    category: "Data Scientist",
-  },
-  {
-    employeeid: 3,
-    fullName: "Rohan Mehta",
-    email: "rohan.mehta@example.com",
-    phone: "+91 9988776655",
-    address: "Hyderabad, India",
-    education: "Diploma in DevOps",
-    experience: "4 years",
-    linkedIn: "https://linkedin.com/in/rohanmehta",
-    notes: "DevOps engineer with expertise in CI/CD pipelines.",
-    category: "DevOps Engineer",
-  },
-];
-
 const EmployeeList: React.FC = () => {
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/employees", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Send cookies with the request
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to fetch employees");
+        }
+        setEmployees(data.data);
+      } catch (err: any) {
+        setError(err.message || "Error fetching employees");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEmployees();
+  }, []);
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading employees...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-center text-red-500">Error: {error}</div>;
+  }
+
   return (
     <div className="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-md dark:bg-gray-800 dark:shadow-lg">
+      <Breadcrumb pageName="Employee List" />
       <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-gray-200">
         Employee List
       </h1>
@@ -72,14 +71,14 @@ const EmployeeList: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {employee.map((employee) => (
+            {employees.map((employee) => (
               <tr
-                key={employee.employeeid}
+                key={employee._id}
                 className="border-b bg-white transition-all hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
               >
                 <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
                   <Link
-                    href={`/candidates/${employee.employeeid}`}
+                    href={`/candidates/${employee._id}`}
                     className="text-blue-600 hover:underline dark:text-blue-400"
                   >
                     {employee.fullName}
@@ -90,7 +89,7 @@ const EmployeeList: React.FC = () => {
                 <td className="px-4 py-3">{employee.experience}</td>
                 <td className="px-4 py-3">
                   <Link
-                    href={`/employees/${employee.employeeid}`}
+                    href={`/employees/${employee._id}`}
                     className="text-blue-600 hover:underline dark:text-blue-400"
                   >
                     View Details

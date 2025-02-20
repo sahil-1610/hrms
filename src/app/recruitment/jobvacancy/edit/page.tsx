@@ -13,6 +13,7 @@ interface VacancyFormData {
   positions: number;
   isActive: boolean;
   hiringManager: string;
+  hiringManagerEmail: string;
 }
 
 const VacancyEditPage: React.FC = () => {
@@ -26,6 +27,7 @@ const VacancyEditPage: React.FC = () => {
     positions: 0,
     isActive: true,
     hiringManager: "",
+    hiringManagerEmail: "",
   });
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -52,6 +54,7 @@ const VacancyEditPage: React.FC = () => {
               positions: vacancy.positions,
               isActive: vacancy.isActive,
               hiringManager: vacancy.hiringManager,
+              hiringManagerEmail: vacancy.hiringManagerEmail,
             });
           } else {
             alert("Vacancy not found");
@@ -168,6 +171,21 @@ const VacancyEditPage: React.FC = () => {
               required
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-black dark:text-gray-200">
+              Hiring Manager Email
+            </label>
+            <input
+              type="text"
+              placeholder="Enter hiring manager Email"
+              value={vacancyForm.hiringManagerEmail}
+              onChange={(e) =>
+                handleChange("hiringManagerEmail", e.target.value)
+              }
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-black outline-none focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              required
+            />
+          </div>
           {/* Number of Positions */}
           <div>
             <label className="block text-sm font-medium text-black dark:text-gray-200">
@@ -176,6 +194,7 @@ const VacancyEditPage: React.FC = () => {
             <input
               type="number"
               placeholder="Enter number of positions"
+              min="1"
               value={vacancyForm.positions}
               onChange={(e) =>
                 handleChange("positions", Number(e.target.value))

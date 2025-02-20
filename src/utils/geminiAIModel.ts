@@ -38,7 +38,6 @@ const safetySettings = [
   },
 ];
 
-
 // Define generation configuration.
 const generationConfig = {
   temperature: 0.7,

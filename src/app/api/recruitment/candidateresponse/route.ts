@@ -6,8 +6,8 @@ import Person from "@/models/Person.model";
 // Ensure Vacancy model is imported for population side effects.
 import "@/models/Vacancy.model";
 import { v2 as cloudinary } from "cloudinary";
-import { Buffer } from "buffer";
-import { jwtVerify } from "jose";
+import { uploadPDF } from "@/utils/cloudinary";
+import authorize from "@/utils/authorize";
 
 // Configure Cloudinary using environment variables.
 cloudinary.config({
@@ -15,25 +15,6 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
-// Helper function to authorize requests.
-// This function now looks for the token in cookies (expected under the name "token").
-async function authorize(req: NextRequest): Promise<boolean> {
-  try {
-    const token = req.cookies.get("token")?.value;
-    if (!token) {
-      console.error("Authorization failed: No token in cookies");
-      return false;
-    }
-
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET as string);
-    await jwtVerify(token, secret);
-    return true;
-  } catch (error) {
-    console.error("Authorization failed:", error);
-    return false;
-  }
-}
 
 /**
  * POST /api/candidate/application
@@ -74,22 +55,9 @@ export async function POST(req: NextRequest) {
     let resumeUrl = "";
     const resumeFile = formData.get("resume");
     if (resumeFile && resumeFile instanceof File) {
-      const arrayBuffer = await resumeFile.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const uploadResult = await new Promise<any>((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: "pdfs", resource_type: "raw", format: "pdf" },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          },
-        );
-        stream.end(buffer);
-      });
-      resumeUrl = uploadResult.secure_url;
-      if (!resumeUrl.toLowerCase().endsWith(".pdf")) {
-        resumeUrl += ".pdf";
-      }
+      // Use the helper function to upload the PDF
+      const uploadResult = await uploadPDF(resumeFile);
+      resumeUrl = uploadResult.url;
     }
 
     const newCandidate = new Person({

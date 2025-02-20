@@ -18,12 +18,29 @@ export interface UploadResult {
  * @param filePath - The local path to the image file.
  * @returns A promise that resolves with the image URL and public_id.
  */
-export async function uploadImage(filePath: string): Promise<UploadResult> {
+export async function uploadImageFile(file: File): Promise<UploadResult> {
   try {
-    const result = await cloudinary.uploader.upload(filePath, {
-      folder: "images",
-      resource_type: "image",
+    // Convert the File (a Blob) to an ArrayBuffer, then to a Buffer.
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const result = await new Promise<any>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "images",
+          resource_type: "image",
+        },
+        (error, result) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        },
+      );
+      stream.end(buffer);
     });
+
     return { url: result.secure_url, public_id: result.public_id };
   } catch (error: any) {
     throw new Error(`Image upload failed: ${error.message || error}`);

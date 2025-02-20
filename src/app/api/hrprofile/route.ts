@@ -4,15 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import HR from "@/models/Hr.model";
 import jwt from "jsonwebtoken";
-import { v2 as cloudinary } from "cloudinary";
-import { Buffer } from "buffer";
-
-// Configure Cloudinary using environment variables.
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // e.g. "mycloudname"
-  api_key: process.env.CLOUDINARY_API_KEY, // e.g. "123456789012345"
-  api_secret: process.env.CLOUDINARY_API_SECRET, // e.g. "mysecretkey"
-});
+import { uploadImageFile } from "@/utils/cloudinary";
 
 // Helper: Extract user ID from token stored in cookies or in the Authorization header.
 function getUserIdFromRequest(req: NextRequest): string | null {
@@ -23,7 +15,7 @@ function getUserIdFromRequest(req: NextRequest): string | null {
   // If token is not found in cookies, try the Authorization header.
   if (!token) {
     const authHeader = req.headers.get("authorization");
-    console.log("Received auth header:", authHeader);
+    //console.log("Received auth header:", authHeader);
     if (authHeader) {
       token = authHeader.split(" ")[1];
     }
@@ -117,22 +109,9 @@ export async function PUT(req: NextRequest) {
     // If a file is provided under "profileImage", process it.
     const file = formData.get("profileImage");
     if (file && file instanceof File) {
-      // Convert the File (a Blob) to a Buffer.
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      // Upload the buffer to Cloudinary using the upload_stream API.
-      const uploadResult = await new Promise<any>((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: "images" },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          },
-        );
-        stream.end(buffer);
-      });
-      updateData.profileImage = uploadResult.secure_url;
+      // Use the helper function to upload the image.
+      const uploadResult = await uploadImageFile(file);
+      updateData.profileImage = uploadResult.url;
     }
 
     const updated = await HR.findByIdAndUpdate(userId, updateData, {

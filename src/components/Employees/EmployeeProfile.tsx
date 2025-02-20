@@ -50,7 +50,7 @@ const employees: Employee[] = [
 
 const EmployeeProfile: React.FC = () => {
   const params = useParams();
-  const employeeid = params.employeeid as string;
+  const employeeid = params?.employeeid as string;
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [employee, setEmployee] = useState<Employee>(
     employees.find((emp) => emp.employeeid === Number(employeeid)) ||

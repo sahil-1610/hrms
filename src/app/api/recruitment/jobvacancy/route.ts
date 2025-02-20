@@ -3,22 +3,7 @@ export const runtime = "nodejs";
 import { NextResponse, NextRequest } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Vacancy from "@/models/Vacancy.model";
-import { jwtVerify } from "jose";
-
-// Helper function to authorize requests from cookies.
-async function authorize(req: NextRequest): Promise<boolean> {
-  try {
-    const token = req.cookies.get("token")?.value;
-    if (!token) return false;
-
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET as string);
-    await jwtVerify(token, secret);
-    return true;
-  } catch (error) {
-    console.error("Authorization failed:", error);
-    return false;
-  }
-}
+import authorize from "@/utils/authorize";
 
 /**
  * POST /api/recruitment/jobvacancy
@@ -45,6 +30,7 @@ export async function POST(req: NextRequest) {
       positions,
       isActive,
       hiringManager,
+      hiringManagerEmail,
     } = requestData;
 
     // Validate required fields.
@@ -53,7 +39,8 @@ export async function POST(req: NextRequest) {
       !jobTitle ||
       !description ||
       positions == null ||
-      !hiringManager
+      !hiringManager ||
+      !hiringManagerEmail
     ) {
       return NextResponse.json(
         { success: false, message: "Missing required fields" },
@@ -68,6 +55,7 @@ export async function POST(req: NextRequest) {
       positions,
       isActive: isActive !== undefined ? isActive : true,
       hiringManager,
+      hiringManagerEmail,
     });
     console.log("Vacancy to be saved:", vacancy);
 
@@ -123,6 +111,7 @@ export async function PUT(req: NextRequest) {
       positions,
       isActive,
       hiringManager,
+      hiringManagerEmail,
     } = await req.json();
     if (!id) {
       return NextResponse.json(
@@ -137,6 +126,7 @@ export async function PUT(req: NextRequest) {
       positions,
       isActive,
       hiringManager,
+      hiringManagerEmail,
     };
 
     // Remove undefined fields to avoid overwriting existing data.

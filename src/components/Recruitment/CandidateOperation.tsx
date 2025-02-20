@@ -9,6 +9,7 @@ interface CandidateData {
   applicationStatus: boolean;
   notes: string;
 }
+
 interface Candidate {
   _id: string; // Candidate document ID from MongoDB
   fullName: string;
@@ -61,7 +62,7 @@ const AnalysisResultCard: React.FC<AnalysisResultCardProps> = ({
 const CandidateOperation: React.FC = () => {
   const router = useRouter();
   const params = useParams();
-  const candidateId = params?.candidateid; // Ensure your route is defined with [candidateid]
+  const candidateIdFromUrl = params?.candidateid; // Ensure your route is defined with [candidateid]
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [alignmentResult, setAlignmentResult] = useState<string>("");
@@ -69,13 +70,13 @@ const CandidateOperation: React.FC = () => {
   const [message, setMessage] = useState<string>("");
 
   useEffect(() => {
-    if (!candidateId) return;
+    if (!candidateIdFromUrl) return;
     const fetchCandidate = async () => {
       setLoading(true);
       try {
         // Pass candidateId as a query parameter.
         const res = await fetch(
-          `/api/recruitment/candidateresponse?candidateId=${candidateId}`,
+          `/api/recruitment/candidateresponse/${candidateIdFromUrl}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
@@ -99,7 +100,7 @@ const CandidateOperation: React.FC = () => {
       }
     };
     fetchCandidate();
-  }, [candidateId]);
+  }, [candidateIdFromUrl]);
 
   // Function to analyze the resume using your backend API.
   const handleAnalyzeResume = async () => {
@@ -125,8 +126,12 @@ const CandidateOperation: React.FC = () => {
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.message || "Failed to analyze resume");
+        const errorDetails = await res.text();
+        throw new Error(
+          `Error from Gemini API: ${res.status} ${res.statusText}. Details: ${errorDetails}`,
+        );
       }
+
       setAlignmentResult(data.alignmentScore);
       setShowAnalysis(true);
     } catch (error: any) {
@@ -158,7 +163,7 @@ const CandidateOperation: React.FC = () => {
       const data = await response.json();
       setMessage(data.message);
       if (data.redirect && decision.decision === "accepted") {
-        router.push(`/recruitment/genrateletter`);
+        router.push(`/recruitment/generateletters`);
       }
     } catch (error) {
       setMessage("Something went wrong!");
@@ -173,103 +178,116 @@ const CandidateOperation: React.FC = () => {
     );
   }
   return (
-    <div className="p-6">
-      <Breadcrumb pageName="Candidate Operation" />
-      {showAnalysis && alignmentResult && (
-        <AnalysisResultCard
-          result={alignmentResult}
-          onClose={() => setShowAnalysis(false)}
-        />
-      )}
-      <div className="mx-auto max-w-3xl rounded-md bg-white p-6 shadow-md dark:bg-gray-800">
-        <h1 className="text-2xl font-bold text-black dark:text-white">
-          {candidate.fullName}
-        </h1>
-        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          <strong>Email:</strong> {candidate.email}
-        </p>
-        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          <strong>Phone:</strong> {candidate.phone}
-        </p>
-        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          <strong>Address:</strong> {candidate.address}
-        </p>
-        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          <strong>Education:</strong> {candidate.education}
-        </p>
-        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          <strong>Experience:</strong> {candidate.experience}
-        </p>
-        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          <strong>Category:</strong> {candidate.category}
-        </p>
-        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          <strong>LinkedIn:</strong>{" "}
-          <a
-            href={candidate.linkedIn}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline dark:text-blue-400"
-          >
-            {candidate.linkedIn}
-          </a>
-        </p>
-        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          <strong>Notes:</strong>{" "}
-          {candidate.candidateData?.notes || "No additional notes"}
-        </p>
-        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          <strong>Resume:</strong>{" "}
-          <a
-            href={candidate.resume}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline dark:text-blue-400"
-          >
-            Download
-          </a>
-        </p>
-        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          <strong>Vacancy Applied For:</strong>{" "}
-          {typeof candidate.vacancyId === "object"
-            ? candidate.vacancyId.vacancyName
-            : candidate.vacancyId || "Not provided"}
-        </p>
-
-        <div className="mt-6">
-          <button
-            onClick={handleAnalyzeResume}
-            className="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 disabled:bg-gray-400"
-            disabled={loading}
-          >
-            {loading ? "Analyzing..." : "Analyze Resume"}
-          </button>
-        </div>
-
-        <div className="mt-4 flex gap-4">
-          <button
-            className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:bg-gray-400"
-            onClick={() => handleDecision({ decision: "accepted" })}
-            disabled={loading}
-          >
-            Accept
-          </button>
-          <button
-            className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:bg-gray-400"
-            onClick={() => handleDecision({ decision: "rejected" })}
-            disabled={loading}
-          >
-            Reject
-          </button>
-        </div>
-
-        {message && (
-          <p className="mt-4 text-sm text-gray-700 dark:text-red-300">
-            {message}
-          </p>
+    <>
+      <div className="p-6">
+        <Breadcrumb pageName="Candidate Operation" />
+        {showAnalysis && alignmentResult && (
+          <AnalysisResultCard
+            result={alignmentResult}
+            onClose={() => setShowAnalysis(false)}
+          />
         )}
+        <div className="mx-auto max-w-3xl rounded-md bg-white p-6 shadow-md dark:bg-gray-800">
+          <h1 className="text-2xl font-bold text-black dark:text-white">
+            {candidate.fullName}
+          </h1>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            <strong>Email:</strong> {candidate.email}
+          </p>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            <strong>Phone:</strong> {candidate.phone}
+          </p>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            <strong>Address:</strong> {candidate.address}
+          </p>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            <strong>Education:</strong> {candidate.education}
+          </p>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            <strong>Experience:</strong> {candidate.experience}
+          </p>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            <strong>LinkedIn:</strong>{" "}
+            <a
+              href={candidate.linkedIn}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline dark:text-blue-400"
+            >
+              View Linkedin
+            </a>
+          </p>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            <strong>Notes:</strong>{" "}
+            {candidate.candidateData?.notes || "No additional notes"}
+          </p>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            <strong>Resume:</strong>{" "}
+            <a
+              href={candidate.resume}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline dark:text-blue-400"
+            >
+              Download
+            </a>
+          </p>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            <strong>Vacancy Applied For:</strong>{" "}
+            {typeof candidate.vacancyId === "object"
+              ? candidate.vacancyId.vacancyName
+              : candidate.vacancyId || "Not provided"}
+          </p>
+
+          <div className="mt-6 flex gap-4">
+            {/*  Resume Analyze Button */}
+            <button
+              onClick={handleAnalyzeResume}
+              className="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 disabled:bg-gray-400"
+              disabled={loading}
+            >
+              {loading ? "Analyzing..." : "Analyze Resume"}
+            </button>
+
+            {/*  Schedule Interview Button */}
+            <button
+              onClick={() =>
+                router.push(
+                  `/recruitment/viewcandidates/${candidate._id}/interview`,
+                )
+              }
+              disabled={loading}
+              className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              Schedule Interview
+            </button>
+          </div>
+
+          <div className="mt-4 flex gap-4">
+            <button
+              className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:bg-gray-400"
+              onClick={() => handleDecision({ decision: "accepted" })}
+              disabled={loading}
+            >
+              Accept
+            </button>
+            <button
+              className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:bg-gray-400"
+              onClick={() => handleDecision({ decision: "rejected" })}
+              disabled={loading}
+            >
+              Reject
+            </button>
+          </div>
+
+          {message && (
+            <p className="mt-4 text-sm text-gray-700 dark:text-red-300">
+              {message}
+            </p>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

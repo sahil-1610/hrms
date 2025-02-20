@@ -14,6 +14,7 @@ interface Vacancy {
   positions: number;
   isActive: boolean;
   url?: string;
+  hiringManagerEmail: string;
 }
 
 const VacancyList: React.FC = () => {
@@ -140,6 +141,10 @@ const VacancyList: React.FC = () => {
               {renderDescription(vacancy)}
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                 <strong>Hiring Manager:</strong> {vacancy.hiringManager}
+              </p>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <strong>Hiring Manager Email :</strong>{" "}
+                {vacancy.hiringManagerEmail}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 <strong>Positions:</strong> {vacancy.positions}

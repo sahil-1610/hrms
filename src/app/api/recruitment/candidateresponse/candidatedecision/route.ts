@@ -3,11 +3,19 @@ import { NextResponse, NextRequest } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import { updateCandidateStatus } from "@/lib/updateCandidateStatus";
 import { sendEmail } from "@/lib/email";
+import authorize from "@/utils/authorize";
 
 export async function POST(req: NextRequest) {
-  await dbConnect();
+  // Require authorization for GET requests.
+  if (!(await authorize(req))) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 },
+    );
+  }
 
   try {
+    await dbConnect();
     const { candidateid, fullName, email, decision } = await req.json();
 
     if (!candidateid || !fullName || !email || !decision) {

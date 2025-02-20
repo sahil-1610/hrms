@@ -27,7 +27,7 @@ const candidateData: Candidate[] = [
     education: "B.Tech in Computer Science",
     experience: "3 years",
     linkedIn: "https://linkedin.com/in/aaravpatel",
-    notes: "Full-stack developer with 3 years of experience.",
+    notes: "Full-stack  developer with 3 years of experience.",
     category: "Software Engineer",
   },
   {

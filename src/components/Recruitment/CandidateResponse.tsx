@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -93,11 +92,15 @@ const CandidateResponse: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <button
-                      onClick={() =>
+                      onClick={() => {
+                        console.log(
+                          "Redirecting candidate with id:",
+                          candidate._id,
+                        );
                         router.push(
                           `/recruitment/viewcandidates/${candidate._id}`,
-                        )
-                      }
+                        );
+                      }}
                       className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400"
                     >
                       View Details
