@@ -1,4 +1,4 @@
-// /app/recruitment/viewcandidates/[candidateid]/interview/page.tsx
+// /src/app/recruitment/viewcandidates/[candidateid]/interview/page.tsx
 "use client";
 import React from "react";
 import ScheduleInterview from "@/components/Recruitment/ScheduleInterview";
@@ -14,11 +14,9 @@ const InterviewPage: React.FC<InterviewPageProps> = ({
   params: { candidateid },
 }) => {
   return (
-    <div>
-      <DefaultLayout>
-        <ScheduleInterview candidateId={candidateid} />
-      </DefaultLayout>
-    </div>
+    <DefaultLayout>
+      <ScheduleInterview candidateId={candidateid} />
+    </DefaultLayout>
   );
 };
 
