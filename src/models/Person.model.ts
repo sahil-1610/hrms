@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import Vacancy from "@/models/Vacancy.model";
-
+import "@/models/Vacancy.model";
+import "@/models/Letter.model";
 export interface EmailHistoryEntry {
   emailId: string;
   subject: string;

@@ -32,13 +32,15 @@ export async function sendEmail(options: {
   text?: string;
   html?: string;
   from?: string;
+  attachments?: Array<{ filename: string; path?: string; content?: Buffer }>;
 }): Promise<any> {
   const mailOptions = {
-    from: options.from || process.env.SMTP_FROM, // e.g. '"Your Company" <no-reply@yourcompany.com>'
+    from: options.from || process.env.SMTP_FROM,
     to: options.to,
     subject: options.subject,
     text: options.text,
     html: options.html,
+    attachments: options.attachments,
   };
 
   return new Promise((resolve, reject) => {

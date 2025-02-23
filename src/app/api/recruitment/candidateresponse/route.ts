@@ -1,10 +1,9 @@
-export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import { NextResponse, NextRequest } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Person from "@/models/Person.model";
-// Ensure Vacancy model is imported for population side effects.
-import "@/models/Vacancy.model";
+import Vacancy from "@/models/Vacancy.model"; // Import Vacancy model explicitly.
 import { v2 as cloudinary } from "cloudinary";
 import { uploadPDF } from "@/utils/cloudinary";
 import authorize from "@/utils/authorize";
@@ -49,6 +48,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { success: false, message: "Missing required fields" },
         { status: 400 },
+      );
+    }
+
+    // NEW: Before processing the file, check if the vacancy exists.
+    const vacancy = await Vacancy.findById(vacancyId);
+    if (!vacancy) {
+      return NextResponse.json(
+        { success: false, message: "Vacancy not found or has been deleted." },
+        { status: 404 },
       );
     }
 

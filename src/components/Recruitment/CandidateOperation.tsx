@@ -161,6 +161,7 @@ const CandidateOperation: React.FC = () => {
         },
       );
       const data = await response.json();
+      console.log("API Response:", data);
       setMessage(data.message);
       if (data.redirect && decision.decision === "accepted") {
         router.push(`/recruitment/generateletters`);
@@ -281,7 +282,7 @@ const CandidateOperation: React.FC = () => {
           </div>
 
           {message && (
-            <p className="mt-4 text-sm text-gray-700 dark:text-red-300">
+            <p className="text-m mt-4 text-gray-700 dark:text-red-300">
               {message}
             </p>
           )}

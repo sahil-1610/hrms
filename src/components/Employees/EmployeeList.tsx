@@ -4,6 +4,19 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
+// Define a Vacancy interface matching your Vacancy model.
+interface Vacancy {
+  _id: string;
+  vacancyName: string;
+  jobTitle: string;
+  description: string;
+  positions: number;
+  isActive: boolean;
+  hiringManager: string;
+  hiringManagerEmail: string;
+}
+
+// Update the Employee interface so that vacancyId is a Vacancy object.
 interface Employee {
   _id: string; // Use _id from MongoDB
   fullName: string;
@@ -15,6 +28,7 @@ interface Employee {
   linkedIn: string;
   notes: string;
   category: string;
+  vacancyId?: Vacancy; // Updated to hold a Vacancy object after population
 }
 
 const EmployeeList: React.FC = () => {
@@ -28,8 +42,6 @@ const EmployeeList: React.FC = () => {
       try {
         const res = await fetch("/api/employees", {
           method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include", // Send cookies with the request
         });
         const data = await res.json();
         if (!res.ok) {
@@ -56,16 +68,13 @@ const EmployeeList: React.FC = () => {
   return (
     <div className="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-md dark:bg-gray-800 dark:shadow-lg">
       <Breadcrumb pageName="Employee List" />
-      <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-gray-200">
-        Employee List
-      </h1>
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
           <thead className="bg-gray-100 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-200">
             <tr>
               <th className="px-4 py-3">Employee Name</th>
               <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Category</th>
+              <th className="px-4 py-3">Job Title</th>
               <th className="px-4 py-3">Experience</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
@@ -85,7 +94,11 @@ const EmployeeList: React.FC = () => {
                   </Link>
                 </td>
                 <td className="px-4 py-3">{employee.email}</td>
-                <td className="px-4 py-3">{employee.category}</td>
+                <td className="px-4 py-3">
+                  {employee.vacancyId
+                    ? employee.vacancyId.jobTitle
+                    : "No Vacancy"}
+                </td>
                 <td className="px-4 py-3">{employee.experience}</td>
                 <td className="px-4 py-3">
                   <Link

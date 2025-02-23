@@ -10,8 +10,8 @@ function Maintainence(): JSX.Element {
             Feature Coming Soon!
           </h1>
           <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
-            We are working hard to bring you this feature. Stay tuned for updates
-            and thank you for your patience.
+            We are working hard to bring you this feature. Stay tuned for
+            updates and thank you for your patience.
           </p>
         </div>
       </div>
