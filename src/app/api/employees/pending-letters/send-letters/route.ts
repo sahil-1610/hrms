@@ -6,13 +6,6 @@ import dbConnect from "@/lib/dbConnect";
 import { uploadPDF } from "@/utils/cloudinary"; // reusing your Cloudinary PDF upload helper
 import { sendEmail } from "@/lib/email";
 
-export const config = {
-  api: {
-    // Disable default body parsing so that Next.js can provide FormData
-    bodyParser: false,
-  },
-};
-
 export async function POST(req: NextRequest) {
   // Connect to the database
   await dbConnect();
